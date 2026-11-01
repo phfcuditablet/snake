@@ -24,7 +24,7 @@ python3 -m http.server 8000
 
 1. No repositório, vá em **Settings → Pages**.
 2. Em **Source**, escolha **Deploy from a branch**, branch `main` e pasta `/ (root)`.
-3. Salve. O jogo ficará em `https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/`.
+3. Salve. O jogo ficará em `https://phfcuditablet.github.io/snake/`.
 
 ## Estrutura
 
