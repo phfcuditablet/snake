@@ -1,0 +1,6 @@
+# Dentro da pasta do projeto:
+git init -b main
+git add .
+git commit -m "feat: jogo da cobrinha estilo Nokia 1100 (Snake II)"
+git remote add origin https://github.com/SEU-USUARIO/NOME-DO-REPOSITORIO.git
+git push -u origin main

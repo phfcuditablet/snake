@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snake II – Nokia 1100</title>
+<style>
+:root{--bg:#e9e7e2;--wood:#b98a52;--lcd:#b4c41c;--ink:#1c2808;--body1:#f1f2f2;--body2:#b9bcbe;--key:#e6e7e8;--txt:#4a4d4f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1f22;--wood:#6b4c2a}}
+:root[data-theme="dark"]{--bg:#1d1f22;--wood:#6b4c2a}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:linear-gradient(var(--bg) 62%,var(--wood) 62%);display:flex;align-items:center;justify-content:center;font-family:"Trebuchet MS",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.phone{width:min(92vw,330px);background:linear-gradient(100deg,var(--body2),var(--body1) 18%,var(--body1) 82%,var(--body2));border-radius:34px 34px 44px 44px;padding:18px 22px 22px;box-shadow:0 18px 30px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.5)}
+.top{background:#efece0;border-radius:26px 26px 8px 8px;padding:12px 0 8px;text-align:center;box-shadow:inset 0 -2px 4px rgba(0,0,0,.15)}
+.grille{width:54px;margin:0 auto 10px;display:grid;gap:4px}
+.grille i{display:block;height:3px;border-radius:2px;background:#8d8b82}
+.brand{font:700 17px/1 Georgia,serif;letter-spacing:3px;color:#666}
+.bezel{margin:12px 0;background:#22304a;border-radius:10px;padding:9px;box-shadow:inset 0 2px 6px #000}
+.lcd{background:var(--lcd);padding:6px;border-radius:3px;box-shadow:inset 0 0 8px rgba(0,0,0,.35)}
+.hud{display:flex;justify-content:space-between;font:700 15px/1 "Courier New",monospace;color:var(--ink);padding:0 2px 4px;letter-spacing:1px}
+canvas{display:block;width:100%;image-rendering:pixelated;border:2px solid var(--ink);touch-action:none}
+.keys{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-rows:auto auto auto;gap:8px;align-items:center;margin-top:6px}
+button{font:inherit;border:0;cursor:pointer;color:var(--txt);background:linear-gradient(#fff,var(--key));border-radius:14px;height:46px;font-size:20px;box-shadow:0 3px 0 #a7aaac,0 4px 6px rgba(0,0,0,.25)}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 #a7aaac}
+button:focus-visible{outline:3px solid #2a6df4;outline-offset:2px}
+.up{grid-column:2;grid-row:1}.left{grid-column:1;grid-row:2}.mid{grid-column:2;grid-row:2;background:none;box-shadow:none;display:flex;align-items:center;justify-content:center}
+.mid span{display:block;width:44px;height:5px;background:#2a8fd6;border-radius:2px;box-shadow:0 0 0 6px transparent}
+.right{grid-column:3;grid-row:2}.down{grid-column:2;grid-row:3}
+.hint{text-align:center;font-size:11px;color:var(--txt);margin-top:10px;opacity:.8}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><div class="grille"><i></i><i></i><i></i></div><div class="brand">NOKIA</div></div>
+  <div class="bezel"><div class="lcd">
+    <div class="hud"><span id="score">0000</span><span id="lvl">▪▪ 01</span></div>
+    <canvas id="c" width="336" height="208"></canvas>
+  </div></div>
+  <div class="keys">
+    <button class="up" data-d="0,-1" aria-label="Cima">⌃</button>
+    <button class="left" data-d="-1,0" aria-label="Esquerda">‹</button>
+    <button class="mid" id="pause" aria-label="Pausar ou começar"><span></span></button>
+    <button class="right" data-d="1,0" aria-label="Direita">›</button>
+    <button class="down" data-d="0,1" aria-label="Baixo">⌄</button>
+  </div>
+  <div class="hint">Setas / WASD / deslize na tela · barra azul = pausar</div>
+</div>
+<script>
+(function(){
+var W=21,H=13,S=16,cv=document.getElementById('c'),g=cv.getContext('2d');
+var INK='#1c2808',BG='#b4c41c';
+var snake,dir,queue,food,bonus,score,level,eaten,pending=0,state='idle',timer,best=0;
+try{best=+localStorage.getItem('snake-best')||0}catch(e){}
+function reset(){
+  snake=[{x:8,y:6},{x:7,y:6},{x:6,y:6},{x:5,y:6}];dir={x:1,y:0};queue=[];
+  score=0;level=1;eaten=0;pending=0;bonus=null;food=spawn();upd();
+}
+function spawn(){
+  var p;do{p={x:Math.floor(Math.random()*W),y:Math.floor(Math.random()*H)}}
+  while(snake.some(function(s){return s.x===p.x&&s.y===p.y}));return p;
+}
+function upd(){
+  document.getElementById('score').textContent=String(score).padStart(4,'0');
+  document.getElementById('lvl').textContent='▪▪ '+String(level).padStart(2,'0');
+}
+function speed(){return Math.max(65,230-(level-1)*14)}
+function start(){reset();state='run';loop()}
+function loop(){clearTimeout(timer);if(state!=='run')return;step();draw();timer=setTimeout(loop,speed())}
+function step(){
+  if(queue.length)dir=queue.shift();
+  var h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+  if(h.x<0||h.y<0||h.x>=W||h.y>=H||snake.some(function(s){return s.x===h.x&&s.y===h.y})){
+    state='over';try{if(score>best){best=score;localStorage.setItem('snake-best',best)}}catch(e){}
+    if(score>best)best=score;return;
+  }
+  snake.unshift(h);
+  var grew=false;
+  if(h.x===food.x&&h.y===food.y){
+    score+=level*1;score+=0;eaten++;grew=true;food=spawn();
+    if(eaten%5===0){level++;}
+    if(eaten%4===0&&!bonus){bonus=Object.assign(spawn(),{ttl:36})}
+  }else if(bonus&&h.x===bonus.x&&h.y===bonus.y){
+    score+=bonus.ttl*level;grew=true;pending+=3;bonus=null;
+  }
+  if(!grew){if(pending>0)pending--;else snake.pop()}
+  if(bonus&&--bonus.ttl<=0)bonus=null;
+  upd();
+}
+function px(x,y){g.fillRect(x*S+1,y*S+1,S-2,S-2)}
+function draw(){
+  g.fillStyle=BG;g.fillRect(0,0,cv.width,cv.height);
+  g.fillStyle=INK;
+  snake.forEach(function(s,i){
+    if(i===0){px(s.x,s.y);g.fillStyle=BG;g.fillRect(s.x*S+dir.x*3+5+(dir.y?0:0),s.y*S+5,3,3);g.fillStyle=INK}
+    else{g.fillRect(s.x*S+3,s.y*S+3,S-6,S-6)}
+  });
+  g.fillRect(food.x*S+S/2-1,food.y*S+2,2,S-4);g.fillRect(food.x*S+2,food.y*S+S/2-1,S-4,2);
+  g.fillRect(food.x*S+5,food.y*S+5,S-10,S-10);
+  if(bonus&&(bonus.ttl>10||bonus.ttl%2)){
+    var bx=bonus.x*S,by=bonus.y*S;
+    g.fillRect(bx+3,by+5,S-6,S-8);g.fillRect(bx+1,by+3,3,3);g.fillRect(bx+S-4,by+3,3,3);
+    g.fillRect(bx+1,by+S-4,3,3);g.fillRect(bx+S-4,by+S-4,3,3);
+  }
+  g.fillStyle=INK;g.textAlign='center';g.font='bold 15px "Courier New",monospace';
+  if(state==='idle'){msg(['SNAKE II','Toque para jogar'].concat(best?['Recorde '+best]:[]))}
+  else if(state==='pause'){msg(['PAUSADO'])}
+  else if(state==='over'){msg(['FIM DE JOGO','Pontos: '+score,'Toque p/ jogar de novo'])}
+}
+function msg(lines){
+  var h=lines.length*20+14;g.fillStyle=BG;g.fillRect(40,(cv.height-h)/2,cv.width-80,h);
+  g.strokeStyle=INK;g.lineWidth=2;g.strokeRect(41,(cv.height-h)/2+1,cv.width-82,h-2);
+  g.fillStyle=INK;lines.forEach(function(t,i){g.fillText(t,cv.width/2,(cv.height-h)/2+27+i*20)});
+}
+function turn(x,y){
+  if(state==='idle'||state==='over'){start();return}
+  if(state==='pause'){state='run';loop()}
+  var last=queue.length?queue[queue.length-1]:dir;
+  if(last.x===-x&&last.y===-y||last.x===x&&last.y===y)return;
+  if(queue.length<2)queue.push({x:x,y:y});
+}
+function pause(){
+  if(state==='run'){state='pause';clearTimeout(timer);draw()}
+  else if(state==='pause'){state='run';loop()}
+  else start();
+}
+document.addEventListener('keydown',function(e){
+  var m={ArrowUp:[0,-1],w:[0,-1],'2':[0,-1],ArrowDown:[0,1],s:[0,1],'8':[0,1],ArrowLeft:[-1,0],a:[-1,0],'4':[-1,0],ArrowRight:[1,0],d:[1,0],'6':[1,0]}[e.key];
+  if(m){e.preventDefault();turn(m[0],m[1])}
+  else if(e.key===' '||e.key==='p'||e.key==='Enter'){e.preventDefault();pause()}
+});
+Array.prototype.forEach.call(document.querySelectorAll('[data-d]'),function(b){
+  b.addEventListener('click',function(){var d=b.dataset.d.split(',');turn(+d[0],+d[1])});
+});
+document.getElementById('pause').addEventListener('click',pause);
+var t0=null;
+cv.addEventListener('touchstart',function(e){t0={x:e.touches[0].clientX,y:e.touches[0].clientY}},{passive:true});
+cv.addEventListener('touchend',function(e){
+  if(!t0)return;var t=e.changedTouches[0],dx=t.clientX-t0.x,dy=t.clientY-t0.y;t0=null;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<24){if(state!=='run')pause();return}
+  if(Math.abs(dx)>Math.abs(dy))turn(dx>0?1:-1,0);else turn(0,dy>0?1:-1);
+});
+cv.addEventListener('click',function(){if(state==='idle'||state==='over')start()});
+reset();draw();
+})();
+</script>
+</body>
+</html>
