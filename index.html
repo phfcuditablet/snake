@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Snake II – Nokia 1100</title>
 <style>
 :root{--bg:#e9e7e2;--wood:#b98a52;--lcd:#b4c41c;--ink:#1c2808;--body1:#f1f2f2;--body2:#b9bcbe;--key:#e6e7e8;--txt:#4a4d4f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -11,7 +11,7 @@
 *{box-sizing:border-box}
 html{height:100%}
 body{margin:0;min-height:100%}
-body{background:linear-gradient(var(--bg) 62%,var(--wood) 62%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:12px 0;font-family:"Trebuchet MS",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+body{background:linear-gradient(var(--bg) 62%,var(--wood) 62%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:12px 0;font-family:"Trebuchet MS",Arial,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;touch-action:none}
 .phone{width:min(92vw,330px);background:linear-gradient(100deg,var(--body2),var(--body1) 18%,var(--body1) 82%,var(--body2));border-radius:34px 34px 44px 44px;padding:18px 22px 22px;box-shadow:0 18px 30px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.5)}
 .top{background:#efece0;border-radius:26px 26px 8px 8px;padding:12px 0 8px;text-align:center;box-shadow:inset 0 -2px 4px rgba(0,0,0,.15)}
 .grille{width:54px;margin:0 auto 10px;display:grid;gap:4px}
@@ -21,8 +21,8 @@ body{background:linear-gradient(var(--bg) 62%,var(--wood) 62%);display:flex;flex
 .lcd{background:var(--lcd);padding:6px;border-radius:3px;box-shadow:inset 0 0 8px rgba(0,0,0,.35)}
 .hud{display:flex;justify-content:space-between;font:700 15px/1 "Courier New",monospace;color:var(--ink);padding:0 2px 4px;letter-spacing:1px}
 canvas{display:block;width:100%;image-rendering:pixelated;border:2px solid var(--ink);touch-action:none}
-.keys{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-rows:auto auto auto;gap:8px;align-items:center;margin-top:6px}
-button{font:inherit;border:0;cursor:pointer;color:var(--txt);background:linear-gradient(#fff,var(--key));border-radius:14px;height:46px;font-size:20px;box-shadow:0 3px 0 #a7aaac,0 4px 6px rgba(0,0,0,.25)}
+.keys{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-rows:auto auto auto;gap:10px;align-items:center;margin-top:6px}
+button{font:inherit;border:0;cursor:pointer;color:var(--txt);background:linear-gradient(#fff,var(--key));border-radius:14px;height:58px;font-size:26px;touch-action:none;box-shadow:0 3px 0 #a7aaac,0 4px 6px rgba(0,0,0,.25)}
 button:active{transform:translateY(2px);box-shadow:0 1px 0 #a7aaac}
 button:focus-visible{outline:3px solid #2a6df4;outline-offset:2px}
 .up{grid-column:2;grid-row:1}.left{grid-column:1;grid-row:2}.mid{grid-column:2;grid-row:2;background:none;box-shadow:none;display:flex;align-items:center;justify-content:center}
@@ -31,6 +31,7 @@ button:focus-visible{outline:3px solid #2a6df4;outline-offset:2px}
 .back{width:48px;height:48px;border-radius:50%;background:#3a3d3f;color:#fff;font:700 26px/46px system-ui,sans-serif;text-align:center;text-decoration:none;box-shadow:0 3px 0 rgba(0,0,0,.35);flex:none}
 .back:active{transform:translateY(2px)}
 .back:focus-visible{outline:3px solid #2a6df4;outline-offset:2px}
+@media (max-height:760px){.phone{padding:12px 18px 14px}.top{padding:8px 0 6px}.grille{display:none}.bezel{margin:8px 0}button{height:52px}.keys{gap:8px}.hint{display:none}body{gap:10px}}
 .hint{text-align:center;font-size:11px;color:var(--txt);margin-top:10px;opacity:.8}
 </style>
 </head>
@@ -69,7 +70,7 @@ function upd(){
   document.getElementById('score').textContent=String(score).padStart(4,'0');
   document.getElementById('lvl').textContent='▪▪ '+String(level).padStart(2,'0');
 }
-function speed(){return Math.max(65,230-(level-1)*14)}
+function speed(){return Math.max(75,255-(level-1)*14)}
 function start(){reset();state='run';loop()}
 function loop(){clearTimeout(timer);if(state!=='run')return;step();draw();timer=setTimeout(loop,speed())}
 function step(){
@@ -135,9 +136,10 @@ document.addEventListener('keydown',function(e){
   else if(e.key===' '||e.key==='p'||e.key==='Enter'){e.preventDefault();pause()}
 });
 Array.prototype.forEach.call(document.querySelectorAll('[data-d]'),function(b){
-  b.addEventListener('click',function(){var d=b.dataset.d.split(',');turn(+d[0],+d[1])});
+  b.addEventListener('pointerdown',function(e){e.preventDefault();var d=b.dataset.d.split(',');turn(+d[0],+d[1])});
 });
-document.getElementById('pause').addEventListener('click',pause);
+document.getElementById('pause').addEventListener('pointerdown',function(e){e.preventDefault();pause()});
+Array.prototype.forEach.call(document.querySelectorAll('.keys button'),function(b){b.addEventListener('mousedown',function(e){e.preventDefault()});b.addEventListener('contextmenu',function(e){e.preventDefault()})});
 var t0=null;
 cv.addEventListener('touchstart',function(e){t0={x:e.touches[0].clientX,y:e.touches[0].clientY}},{passive:true});
 cv.addEventListener('touchend',function(e){
