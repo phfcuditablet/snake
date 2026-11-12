@@ -22,7 +22,7 @@ body{background:linear-gradient(var(--bg) 62%,var(--wood) 62%);display:flex;flex
 .hud{display:flex;justify-content:space-between;font:700 15px/1 "Courier New",monospace;color:var(--ink);padding:0 2px 4px;letter-spacing:1px}
 canvas{display:block;width:100%;image-rendering:pixelated;border:2px solid var(--ink);touch-action:none}
 .keys{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-rows:auto auto auto;gap:10px;align-items:center;margin-top:6px}
-button{font:inherit;border:0;cursor:pointer;color:var(--txt);background:linear-gradient(#fff,var(--key));border-radius:14px;height:58px;font-size:26px;touch-action:none;box-shadow:0 3px 0 #a7aaac,0 4px 6px rgba(0,0,0,.25)}
+button{font:inherit;border:0;cursor:pointer;color:var(--txt);background:linear-gradient(#fff,var(--key));border-radius:14px;height:64px;font-size:28px;touch-action:none;box-shadow:0 3px 0 #a7aaac,0 4px 6px rgba(0,0,0,.25)}
 button:active{transform:translateY(2px);box-shadow:0 1px 0 #a7aaac}
 button:focus-visible{outline:3px solid #2a6df4;outline-offset:2px}
 .up{grid-column:2;grid-row:1}.left{grid-column:1;grid-row:2}.mid{grid-column:2;grid-row:2;background:none;box-shadow:none;display:flex;align-items:center;justify-content:center}
@@ -31,7 +31,7 @@ button:focus-visible{outline:3px solid #2a6df4;outline-offset:2px}
 .back{width:48px;height:48px;border-radius:50%;background:#3a3d3f;color:#fff;font:700 26px/46px system-ui,sans-serif;text-align:center;text-decoration:none;box-shadow:0 3px 0 rgba(0,0,0,.35);flex:none}
 .back:active{transform:translateY(2px)}
 .back:focus-visible{outline:3px solid #2a6df4;outline-offset:2px}
-@media (max-height:760px){.phone{padding:12px 18px 14px}.top{padding:8px 0 6px}.grille{display:none}.bezel{margin:8px 0}button{height:52px}.keys{gap:8px}.hint{display:none}body{gap:10px}}
+@media (max-height:760px){.phone{padding:12px 18px 14px}.top{padding:8px 0 6px}.grille{display:none}.bezel{margin:8px 0}button{height:58px}.keys{gap:8px}.hint{display:none}body{gap:10px}}
 .hint{text-align:center;font-size:11px;color:var(--txt);margin-top:10px;opacity:.8}
 </style>
 </head>
@@ -56,7 +56,7 @@ button:focus-visible{outline:3px solid #2a6df4;outline-offset:2px}
 (function(){
 var W=21,H=13,S=16,cv=document.getElementById('c'),g=cv.getContext('2d');
 var INK='#1c2808',BG='#b4c41c';
-var snake,dir,queue,food,bonus,score,level,eaten,pending=0,state='idle',timer,best=0;
+var snake,dir,queue,food,bonus,score,level,eaten,pending=0,state='idle',timer,lastStep=0,best=0;
 try{best=+localStorage.getItem('snake-best')||0}catch(e){}
 function reset(){
   snake=[{x:8,y:6},{x:7,y:6},{x:6,y:6},{x:5,y:6}];dir={x:1,y:0};queue=[];
@@ -70,10 +70,11 @@ function upd(){
   document.getElementById('score').textContent=String(score).padStart(4,'0');
   document.getElementById('lvl').textContent='▪▪ '+String(level).padStart(2,'0');
 }
-function speed(){return Math.max(75,255-(level-1)*14)}
+function speed(){return Math.max(85,285-(level-1)*14)}
 function start(){reset();state='run';loop()}
 function loop(){clearTimeout(timer);if(state!=='run')return;step();draw();timer=setTimeout(loop,speed())}
 function step(){
+  lastStep=performance.now();
   if(queue.length)dir=queue.shift();
   var h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
   if(h.x<0||h.y<0||h.x>=W||h.y>=H||snake.some(function(s){return s.x===h.x&&s.y===h.y})){
@@ -124,6 +125,7 @@ function turn(x,y){
   var last=queue.length?queue[queue.length-1]:dir;
   if(last.x===-x&&last.y===-y||last.x===x&&last.y===y)return;
   if(queue.length<2)queue.push({x:x,y:y});
+  if(state==='run'&&performance.now()-lastStep>90){clearTimeout(timer);loop()}
 }
 function pause(){
   if(state==='run'){state='pause';clearTimeout(timer);draw()}
