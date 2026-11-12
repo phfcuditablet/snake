@@ -9,6 +9,7 @@ Jogo da cobrinha em HTML, CSS e JavaScript puros, inspirado no clássico Snake I
 - **Comida:** cresce 1 segmento e dá pontos.
 - **Inseto bônus:** aparece a cada 4 comidas por pouco tempo; vale mais pontos e faz a cobra crescer 3 segmentos extras.
 - **Níveis:** a cada 5 comidas sobe o nível e a velocidade aumenta.
+- **Voltar:** o botão ← abaixo do celular leva à página dos jogos (`https://phfcuditablet.github.io/jogos/`).
 - **Fim de jogo:** bater na parede ou em si mesma. O recorde fica salvo no navegador (`localStorage`).
 
 ## Executar localmente
@@ -24,7 +25,7 @@ python3 -m http.server 8000
 
 1. No repositório, vá em **Settings → Pages**.
 2. Em **Source**, escolha **Deploy from a branch**, branch `main` e pasta `/ (root)`.
-3. Salve. O jogo ficará em `https://phfcuditablet.github.io/snake/`.
+3. Salve. O jogo ficará em `https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/`.
 
 ## Estrutura
 
